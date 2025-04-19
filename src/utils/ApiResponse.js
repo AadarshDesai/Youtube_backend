@@ -1,5 +1,5 @@
 class ApiResponse {
-    ApiResponse( //if error occurs, change this to constructor
+    constructor(
         statusCode,
         data,
         message="Success"
