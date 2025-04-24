@@ -4,8 +4,7 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js"
 
-const registerUser = asyncHandler( async (req, res) => {
-    //logic to register
+//logic to register
     
     // get user details from frontend (in our case from postman body) - Done
     // validation - non empty - Done
@@ -17,6 +16,8 @@ const registerUser = asyncHandler( async (req, res) => {
     // Check for user creation - Done
     // return response. - Done
 
+const registerUser = asyncHandler( async (req, res) => {
+    
     const {fullName, username, password, email} = req.body;
 
     //Empty Validation
@@ -27,7 +28,7 @@ const registerUser = asyncHandler( async (req, res) => {
     }
 
     //Check if user already exist or not
-    const userExist = User.findOne({
+    const userExist = await User.findOne({
         $or: [ { username }, { email } ]
     });
 
@@ -56,11 +57,11 @@ const registerUser = asyncHandler( async (req, res) => {
     //Create user in database.
     const response = await User.create({
         fullName,
-        "username": username.toLowerCase(),
+        username: username.toLowerCase(),
         email,
         password,
-        "Avatar": avatarResponse.url,
-        "coverImage": coverImageResponse?.url || "",
+        avatar: avatarResponse.url,
+        coverImage: coverImageResponse?.url || "",
     });
 
     //Check if user entry is added in the database. 
