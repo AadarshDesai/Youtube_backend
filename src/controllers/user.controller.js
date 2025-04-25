@@ -38,7 +38,12 @@ const registerUser = asyncHandler( async (req, res) => {
 
     //Fetch localpaths for avatar and coverImages
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    //const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path;
+    }
 
     //As avatar is required field, check if avatar is present or not.
     if(!avatarLocalPath) {
