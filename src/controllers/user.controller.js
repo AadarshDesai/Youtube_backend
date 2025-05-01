@@ -4,7 +4,10 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js"
 
-//logic to register
+
+const registerUser = asyncHandler( async (req, res) => {
+    
+    //logic to register
     
     // get user details from frontend (in our case from postman body) - Done
     // validation - non empty - Done
@@ -16,8 +19,6 @@ import { ApiResponse } from "../utils/ApiResponse.js"
     // Check for user creation - Done
     // return response. - Done
 
-const registerUser = asyncHandler( async (req, res) => {
-    
     const {fullName, username, password, email} = req.body;
 
     //Empty Validation
@@ -87,4 +88,33 @@ const registerUser = asyncHandler( async (req, res) => {
 
 });
 
-export { registerUser }
+const loginUser = asyncHandler( async (req, res) => {
+    //Logic to login
+    
+
+    /**
+     * req boy -> data
+     * username or email
+     * find the user in database
+     * password check. 
+     * generate access token and refresh token. 
+     * send cookies. 
+     */
+    
+
+    const {email, username, password} = req.body;
+
+    if(!username || !email) {  
+        throw new ApiError(400, "username or email is required! ")
+    }
+
+    const user = User.findOne({
+        $or: [{username}, {email}]
+    })
+});
+
+
+export {
+    registerUser,
+    loginUser
+}
