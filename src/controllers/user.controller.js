@@ -4,6 +4,22 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js"
 
+//Method to generate access and refresh token.
+const generateAccessAndRefreshToken = async(userId) => {
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        user.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
+
+        return {accessToken, refreshToken}
+
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating access and refresh tokens.")
+    }
+}
 
 const registerUser = asyncHandler( async (req, res) => {
     
@@ -91,9 +107,8 @@ const registerUser = asyncHandler( async (req, res) => {
 const loginUser = asyncHandler( async (req, res) => {
     //Logic to login
     
-
     /**
-     * req boy -> data
+     * req body -> data
      * username or email
      * find the user in database
      * password check. 
@@ -102,19 +117,69 @@ const loginUser = asyncHandler( async (req, res) => {
      */
     
 
+    //Get data from req body
     const {email, username, password} = req.body;
 
+    //Check if either username or email is available or not.
     if(!username || !email) {  
         throw new ApiError(400, "username or email is required! ")
     }
 
-    const user = User.findOne({
+    //Fimd the user in database.
+    const user = await  User.findOne({
         $or: [{username}, {email}]
     })
+
+    //Return with error if user not found.
+    if(!user){
+        throw new ApiError(404, "User not found! Please sign up.")
+    }
+
+    //Check if password is correct or not.
+    const passwordCorrect = await user.isPasswordCorrect(password);
+
+    //If password is not correct return with the message.
+    if(!passwordCorrect){
+        throw new ApiError(402, "Password is incorrect! Please try again. ");
+    }
+
+    //Generate access and refresh tokens from the method we have created.
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
+
+    //Because we want to exclude password and refreshTokens from the response. 
+    const loggedInUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: loggedInUser, accessToken, refreshToken
+            },
+            "User Logged In Successfully. "
+        )
+    )
+
+
 });
+
+const logoutUser = asyncHandler (async (req, res) => {
+
+})
 
 
 export {
     registerUser,
-    loginUser
+    loginUser,
+    logoutUser
 }
