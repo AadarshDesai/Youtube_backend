@@ -16,6 +16,7 @@ app.use(cookieParser());
 
 //Import routes
 import userRouter from "./routes/user.routes.js";
+import { verifyJWT } from "./middlewares/auth.middleware.js";
 
 //Route Declaration
 app.use("/api/v1/users", userRouter);
