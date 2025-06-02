@@ -120,16 +120,15 @@ const loginUser = asyncHandler( async (req, res) => {
     const {email, username, password} = req.body;
 
     //Check if either username or email is available or not.
-    if(!username || !email) {  
+    if(!username && !email) {  
         throw new ApiError(400, "username or email is required! ")
     }
 
     //Find the user in database.
     const user = await  User.findOne({
         $or: [{username}, {email}]
-    }).select(
-        "-password -refreshToken"
-    )
+    })
+    // console.log(user);
 
     //Return with error if user not found.
     if(!user){
@@ -137,6 +136,7 @@ const loginUser = asyncHandler( async (req, res) => {
     }
 
     //Check if password is correct or not.
+    // console.log(password)
     const passwordCorrect = await user.isPasswordCorrect(password);
 
     //If password is not correct return with the message.
@@ -148,9 +148,9 @@ const loginUser = asyncHandler( async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
 
     // //Because we want to exclude password and refreshTokens from the response. 
-    // const loggedInUser = await User.findById(user._id).select(
-    //     "-password -refreshToken"
-    // )
+    const loggedInUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )
 
     const options = {
         httpOnly: true,
@@ -165,7 +165,7 @@ const loginUser = asyncHandler( async (req, res) => {
         new ApiResponse(
             200,
             {
-                user: user, accessToken, refreshToken
+                user: loggedInUser, accessToken, refreshToken
             },
             "User Logged In Successfully. "
         )
