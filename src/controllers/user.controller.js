@@ -200,7 +200,7 @@ const refreshAccessToken = asyncHandler (async (req, res) => {
     }
 
     try {
-        const decodedToken = jwt.verify(incomingRefreshToken. process.env.REFRESH_TOKEN_SECRET);
+        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
     
         const user = await User.findById(decodedToken?._id);
     
@@ -261,7 +261,7 @@ const getCurrentUser = asyncHandler( async (req, res) => {
 const updateAccountDetails = asyncHandler (async (req, res) => {
     const {fullName, email} = req.body; 
 
-    if(!fullName && !email) {
+    if(!(fullName || email)) {
         throw new ApiError(400, "Please enter a field to update.")
     }
 
@@ -381,7 +381,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
                     $cond: {
                         if: {$in: [req.user?._id, "$subscribers.subscriber"]},
                         then: true,
-                        esle: false
+                        else: false
                     }
                 }
             }
